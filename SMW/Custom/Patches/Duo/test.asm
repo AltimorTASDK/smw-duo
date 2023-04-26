@@ -125,7 +125,7 @@ namespace DUO_HandlePlayerPhysics_AirControlAndWalljump
 freecode
 Main:
 	LDA.b !RAM_SMW_Player_InAirFlag
-	BEQ.b OnGround
+	BEQ.b CheckAirControl
 
 	; Decrement walljump timer
 	DEC.w DUO.Player_WalljumpTimer
@@ -168,11 +168,6 @@ Walljump:
 
 	STZ.w DUO.Player_HighJumpFlag
 	STZ.w DUO.Player_LongJumpFlag
-
-	BRA.b CheckAirControl
-
-OnGround:
-	STZ.w DUO.Player_WalljumpTimer
 
 CheckAirControl:
 	; Overwritten code (exit if L/R not held)
@@ -247,6 +242,13 @@ Return:
 	RTL
 namespace off
 
+freecode
+DUO_ResetAirFlags:
+	STZ.w DUO.Player_HighJumpFlag
+	STZ.w DUO.Player_LongJumpFlag
+	STZ.w DUO.Player_WalljumpTimer
+	RTL
+
 org SMW_DamagePlayer_PitFall
 namespace DUO_DamagePlayer_PitFall_ResetAirFlags
 	JSL.l Main
@@ -259,12 +261,6 @@ Main:
 	JSL.l DUO_ResetAirFlags
 	RTL
 namespace off
-
-freecode
-DUO_ResetAirFlags:
-	STZ.w DUO.Player_HighJumpFlag
-	STZ.w DUO.Player_LongJumpFlag
-	RTL
 
 org SMW_RunPlayerBlockCode_CODE_00EF68
 namespace DUO_RunPlayerBlockCode_Land_ResetAirFlags
