@@ -5,7 +5,7 @@
 
 ; Advance game frame-by-frame.
 ; Usage: Pause then on controller 2 press Y to advance one frame, or hold B to keep advancing.
-!DEBUG_SlowMotion = !FALSE
+!DEBUG_SlowMotion = !TRUE
 
 ; Beat any level.
 ; Usage: Pause then press Select for regular exit or Select+A/B for secret exit.

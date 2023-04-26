@@ -14,10 +14,15 @@ macro SMW_InsertIntegratedPatches()
 ; Insert your patch references here that will be assembled during ROM assembly
 ; Use this macro for patches that you have integrated into this disassembly
 
-incsrc "Patches/Default/SA1/Main_SA1Patch.asm"
+;incsrc "Patches/Default/SA1/Main_SA1Patch.asm"
 ;incsrc "Patches/Default/CheckForLMCompatibility.asm"
 ;incsrc "Patches/Default/MakeSpecialLevelsViewableInLM.asm"
 ;incsrc "Patches/Default/DebugFunctions.asm"
+
+incsrc "Patches/Duo/RAM_Map_DUO.asm"
+incsrc "Patches/Duo/Utility.asm"
+incsrc "Patches/Duo/test.asm"
+incsrc "Patches/Duo/Debug.asm"
 
 endmacro
 
