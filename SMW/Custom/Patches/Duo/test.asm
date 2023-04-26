@@ -1,5 +1,5 @@
-; Before 1.5x multiplier
-!Define_DUO_LongJumpSpeed = 43
+; Before 1.5x multiplier (subpixels)
+!Define_DUO_LongJumpSpeed = (43<<8)
 
 ; Update wall touch flag
 org SMW_RunPlayerBlockCode_LMBlockOffset_MarioSide+3
@@ -17,6 +17,91 @@ Collision:
 
 NoCollision:
 	JML.l SMW_RunPlayerBlockCode_CODE_00EC35
+namespace off
+
+; Override P meter behavior
+org SMW_HandlePlayerPhysics_UpdatePMeter_Variable
+namespace DUO_HandlePlayerPhysics_UpdatePMeter
+	JSL.l Main
+freecode
+Main:
+	; Check run held
+	LDA.w !RAM_SMW_IO_ControllerHold1
+	AND.b #!Joypad_X|(!Joypad_Y>>8)
+	BEQ.b Return
+
+	; Check speed
+	LDA.b !RAM_SMW_Player_XSpeed
+	BPL.b +
+	EOR.b #$FF
+	INC
++:
+	CMP.b #35
+	BMI.b Return
+
+Increment:
+	LDY.b #2
+
+Return:
+	; Overwritten code
+	LDA.w !RAM_SMW_Player_PMeter
+	CLC
+	RTL
+namespace off
+
+; Override acceleration/speed cap handling
+org SMW_HandlePlayerPhysics_CODE_00D742
+namespace DUO_HandlePlayerPhysics_Accel
+	JML.l Main
+freecode
+Main:
+	; Fix speed oscillation
+	LDA.b !RAM_SMW_Player_XSpeed
+	SEC
+	SBC.w SMW_HandlePlayerPhysics_DATA_00D535,y
+	BEQ.b NoAccel
+	EOR.w SMW_HandlePlayerPhysics_DATA_00D535,y
+	BPL.b SlowDown
+
+	; Store 16-bit max speed
+	LDA.w SMW_HandlePlayerPhysics_DATA_00D535,y
+	STZ.b !RAM_SMW_Misc_ScratchRAM00
+	STA.b !RAM_SMW_Misc_ScratchRAM01
+
+	%Mode16BitA()
+
+	LDA.w SMW_HandlePlayerPhysics_MarioAccel,x
+	LDY.b !RAM_SMW_Flag_IceLevel
+	BEQ.b NoIce
+	LDY.b !RAM_SMW_Player_InAirFlag
+	BNE.b NoIce
+	LDA.w SMW_HandlePlayerPhysics_DATA_00D43D,x
+NoIce:
+	CLC
+	ADC.b !RAM_SMW_Player_SubXSpeed
+	STA.b !RAM_SMW_Misc_ScratchRAM02
+
+	; Check that acceleration didn't put Mario over max speed
+	SEC
+	SBC.w !RAM_SMW_Misc_ScratchRAM00
+	BEQ.b HitSpeedCap
+	EOR.w !RAM_SMW_Misc_ScratchRAM00
+	BPL.b HitSpeedCap
+
+	LDA.w !RAM_SMW_Misc_ScratchRAM02
+	JML.l SMW_HandlePlayerPhysics_CODE_00D7A0
+
+HitSpeedCap:
+	LDA.w !RAM_SMW_Misc_ScratchRAM00
+	JML.l SMW_HandlePlayerPhysics_CODE_00D7A0
+
+NoAccel:
+	; Get rid of any excess subpixel speed
+	STZ.b !RAM_SMW_Player_SubXSpeed
+	JML.l SMW_HandlePlayerPhysics_Return00D7A4
+
+SlowDown:
+	JML.l SMW_HandlePlayerPhysics_CODE_00D76B
 namespace off
 
 ; High jumps and long jumps
@@ -52,17 +137,19 @@ HighJump:
 
 	; Cap to walk speed
 	LDA.b !RAM_SMW_Player_XSpeed
-	CMP.b #21
+	CMP.b #20
 	BPL.b HighJumpCapSpeedRight
-	CMP.b #-21
+	CMP.b #-20
 	BPL.b HighJumpSpeed
 
 HighJumpCapSpeedLeft:
-	LDA.b #-21
+	LDA.b #-20
+	STZ.b !RAM_SMW_Player_SubXSpeed
 	BRA.b HighJumpSpeed
 
 HighJumpCapSpeedRight:
-	LDA.b #21
+	LDA.b #20
+	STZ.b !RAM_SMW_Player_SubXSpeed
 
 HighJumpSpeed:
 	STA.b !RAM_SMW_Player_XSpeed
@@ -73,29 +160,35 @@ LongJump:
 	LDA.b #1
 	STA.w DUO.Player_LongJumpFlag
 	STZ.w !RAM_SMW_Player_SpinJumpFlag
+	STZ.w !RAM_SMW_Player_DuckingFlag
+
+	%Mode16BitA()
 
 	; Cap to max speed
-	LDA.b !RAM_SMW_Player_XSpeed
-	CMP.b #!Define_DUO_LongJumpSpeed
+	LDA.b !RAM_SMW_Player_SubXSpeed
+	CMP.w #!Define_DUO_LongJumpSpeed
 	BPL.b LongJumpCapSpeedRight
-	CMP.b #-!Define_DUO_LongJumpSpeed
+	CMP.w #-!Define_DUO_LongJumpSpeed
 	BPL.b LongJumpSpeed
 
 LongJumpCapSpeedLeft:
-	LDA.b #-!Define_DUO_LongJumpSpeed
+	LDA.w #-!Define_DUO_LongJumpSpeed
 	BRA.b LongJumpSpeed
 
 LongJumpCapSpeedRight:
-	LDA.b #!Define_DUO_LongJumpSpeed
+	LDA.w #!Define_DUO_LongJumpSpeed
 
 LongJumpSpeed:
 	; Multiply X speed by 1.5
 	STA.b !RAM_SMW_Misc_ScratchRAM00
-	CMP.b #$80 ; Set carry to sign
+	CMP.w #$8000 ; Set carry to sign
 	ROR
-	CMP.b #$80 ; Set carry to sign
+	CLC
 	ADC.b !RAM_SMW_Misc_ScratchRAM00
-	STA.b !RAM_SMW_Player_XSpeed
+	STA.b !RAM_SMW_Player_SubXSpeed
+
+	%Mode8BitA()
+
 	LDA.b #-60
 	BRA.b SetYSpeed
 
@@ -116,7 +209,7 @@ SetYSpeed:
 	RTL
 namespace off
 
-; Handles air control toggle and walljumps
+; Handles movement control toggle and walljumps
 org SMW_HandlePlayerPhysics_CODE_00D682
 namespace DUO_HandlePlayerPhysics_AirControlAndWalljump
 	LDA.w !RAM_SMW_Player_SlidingOnGround
@@ -125,7 +218,7 @@ namespace DUO_HandlePlayerPhysics_AirControlAndWalljump
 freecode
 Main:
 	LDA.b !RAM_SMW_Player_InAirFlag
-	BEQ.b CheckAirControl
+	BEQ.b CheckControl
 
 	; Decrement walljump timer
 	DEC.w DUO.Player_WalljumpTimer
@@ -136,11 +229,11 @@ Main:
 	; Check for A/B press
 	LDA.b !RAM_SMW_IO_ControllerPress1
 	AND.b #!Joypad_A|(!Joypad_B>>8)
-	BEQ.b CheckAirControl
+	BEQ.b CheckControl
 
 	; Check if touching wall
 	LDA.w DUO.Player_WallTouchFlag
-	BEQ.b CheckAirControl
+	BEQ.b CheckControl
 
 	LDA.b !RAM_SMW_Player_HorizontalSideOfBlockBeingTouched
 	BNE.b WalljumpRight
@@ -169,26 +262,26 @@ Walljump:
 	STZ.w DUO.Player_HighJumpFlag
 	STZ.w DUO.Player_LongJumpFlag
 
-CheckAirControl:
+CheckControl:
 	; Overwritten code (exit if L/R not held)
 	LDA.b !RAM_SMW_IO_ControllerHold1
 	AND.b #(!Joypad_DPadL>>8)|(!Joypad_DPadR>>8)
 	BEQ.b Return
 
-	; Set zero flag if no air control
+	; Set zero flag if no control
 	TAY
 	LDA.w DUO.Player_WalljumpTimer
 	ORA.w DUO.Player_LongJumpFlag
 	TAX
 	TYA
 	CPX.b #0
-	BEQ.b AirControl
+	BEQ.b Control
 
-NoAirControl:
+NoControl:
 	LDX.b #0
 	RTL
 
-AirControl:
+Control:
 	LDX.b #1
 
 Return:

@@ -43,7 +43,7 @@ CopyLoop:
 	LDX.b #NewRowEnd-NewRow-1
 BufferStatusCounterRAMLoop:
 	LDA.l NewRow,x
-	STA.w DUO.Misc_StatusBarTilemap,x
+	STA.l DUO_Hi.Misc_StatusBarTilemap,x
 	DEX
 	BPL.b BufferStatusCounterRAMLoop
 
@@ -111,8 +111,8 @@ CopyLoop:
 
 PARAMS_StBr3:
 	db $01,!REGISTER_WriteToVRAMPortLo
-	dl DUO.Misc_StatusBarTilemap
-	dw DUO.Misc_StatusBarTilemapEnd-DUO.Misc_StatusBarTilemap
+	dl DUO_Hi.Misc_StatusBarTilemap
+	dw DUO_Hi.Misc_StatusBarTilemapEnd-DUO_Hi.Misc_StatusBarTilemap
 namespace off
 
 org SMW_UpdateStatusBarCounters_Main
@@ -121,70 +121,88 @@ namespace DUO_UpdateStatusBarCounters
 	NOP
 freecode
 Main:
-	LDA.b !RAM_SMW_Player_XSpeed
+	; Write X
+	LDX.b !RAM_SMW_Player_XSpeed
 	BPL.b PositiveX
 
 	; Write minus
-	LDY.b #$27
-	STY.w DUO.Misc_StatusBarTilemap_XSpeed
+	LDA.b #$27
+	STA.l DUO_Hi.Misc_StatusBarTilemap_XSpeed
+	TAY
+	TXA
 	EOR.b #$FF
+	LDX.b !RAM_SMW_Player_SubXSpeed
+	BNE.b +
 	INC
++:
 	BRA.b WriteDigitsX
 
 PositiveX:
 	; Write space
-	LDY.b #$FC
-	STY.w DUO.Misc_StatusBarTilemap_XSpeed
+	LDA.b #$FC
+	STA.l DUO_Hi.Misc_StatusBarTilemap_XSpeed
+	TAY
+	TXA
 
 WriteDigitsX:
 	JSL.l DUO_HexToDec
-	CPX.b #0
+	STA.l DUO_Hi.Misc_StatusBarTilemap_XSpeed+4
+	TXA
+	CMP.b #0
 	BNE.b WriteTensX
 	; Copy space/minus over
-	LDX.b #$FC
-	STX.w DUO.Misc_StatusBarTilemap_XSpeed
-	TYX
+	LDA.b #$FC
+	STA.l DUO_Hi.Misc_StatusBarTilemap_XSpeed
+	TYA
 WriteTensX:
-	STX.w DUO.Misc_StatusBarTilemap_XSpeed+2
-	STA.w DUO.Misc_StatusBarTilemap_XSpeed+4
+	STA.l DUO_Hi.Misc_StatusBarTilemap_XSpeed+2
 
-	LDA.b !RAM_SMW_Player_YSpeed
+	; Write Y
+	LDX.b !RAM_SMW_Player_YSpeed
 	BPL.b PositiveY
 
 	; Write minus
-	LDY.b #$27
-	STY.w DUO.Misc_StatusBarTilemap_YSpeed
+	LDA.b #$27
+	STA.l DUO_Hi.Misc_StatusBarTilemap_YSpeed
+	TAY
+	TXA
 	EOR.b #$FF
+	LDX.b !RAM_SMW_Player_SubYSpeed
+	BNE.b +
 	INC
++:
 	BRA.b WriteDigitsY
 
 PositiveY:
 	; Write space
-	LDY.b #$FC
-	STY.w DUO.Misc_StatusBarTilemap_YSpeed
+	LDA.b #$FC
+	STA.l DUO_Hi.Misc_StatusBarTilemap_YSpeed
+	TAY
+	TXA
 
 WriteDigitsY:
 	JSL.l DUO_HexToDec
-	CPX.b #0
+	STA.l DUO_Hi.Misc_StatusBarTilemap_YSpeed+4
+	TXA
+	CMP.b #0
 	BNE.b WriteTensY
 	; Copy space/minus over
-	LDX.b #$FC
-	STX.w DUO.Misc_StatusBarTilemap_YSpeed
-	TYX
+	LDA.b #$FC
+	STA.l DUO_Hi.Misc_StatusBarTilemap_YSpeed
+	TYA
 WriteTensY:
-	STX.w DUO.Misc_StatusBarTilemap_YSpeed+2
-	STA.w DUO.Misc_StatusBarTilemap_YSpeed+4
+	STA.l DUO_Hi.Misc_StatusBarTilemap_YSpeed+2
 
 UpdatePMeter:
 	LDA.b #0
-	LDX.w !RAM_SMW_Player_PMeter
-	LDY.b #0
+	LDX.b #0
+	LDY.w !RAM_SMW_Player_PMeter
 
 PLoop:
 	CLC
 	ADC.b #!Define_SMW_Physics_PMeterMax/8
 	STA.b !RAM_SMW_Misc_ScratchRAM00
-	CPX.b !RAM_SMW_Misc_ScratchRAM00
+	CPY.b !RAM_SMW_Misc_ScratchRAM00
 	BMI.b PNotFilled
 PFilled:
 	LDA.b #$35
@@ -192,10 +210,10 @@ PFilled:
 PNotFilled:
 	LDA.b #$39
 PNext:
-	STA.w DUO.Misc_StatusBarTilemap_PMeter+1,y
+	STA.l DUO_Hi.Misc_StatusBarTilemap_PMeter+1,x
 	LDA.b !RAM_SMW_Misc_ScratchRAM00
-	INY
-	INY
+	INX
+	INX
 	CMP.b #!Define_SMW_Physics_PMeterMax
 	BMI.b PLoop
 

@@ -1,3 +1,10 @@
+macro Mode16BitA()
+	REP.b #$20
+endmacro
+macro Mode8BitA()
+	SEP.b #$20
+endmacro
+
 freecode
 DUO_HexToDec:
 	LDX.b #$00
