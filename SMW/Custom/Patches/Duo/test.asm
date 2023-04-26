@@ -11,8 +11,8 @@ Main:
 	BEQ.b NoCollision
 
 Collision:
-	CPY.b #$11
 	INC.w DUO.Player_WallTouchFlag
+	CPY.b #$11
 	JML.l SMW_RunPlayerBlockCode_LMBlockOffset_MarioSide+3+4
 
 NoCollision:
@@ -217,44 +217,58 @@ namespace DUO_HandlePlayerPhysics_AirControlAndWalljump
 	JSL.l Main
 freecode
 Main:
-	LDA.b !RAM_SMW_Player_InAirFlag
-	BEQ.b CheckControl
-
 	; Decrement walljump timer
 	DEC.w DUO.Player_WalljumpTimer
 	BPL +
 	STZ.w DUO.Player_WalljumpTimer
 +:
 
-	; Check for A/B press
-	LDA.b !RAM_SMW_IO_ControllerPress1
-	AND.b #!Joypad_A|(!Joypad_B>>8)
-	BEQ.b CheckControl
-
 	; Check if touching wall
 	LDA.w DUO.Player_WallTouchFlag
 	BEQ.b CheckControl
 
+	; Check if airborne
+	LDA.b !RAM_SMW_Player_InAirFlag
+	BEQ.b CheckControl
+
+	; Check for A/B press
+	LDA.b !RAM_SMW_IO_ControllerPress1
+	AND.b #!Joypad_B>>8
+	BNE.b NormalWalljump
+	ORA.b !RAM_SMW_IO_ControllerPress2
+	AND.b #!Joypad_A
+	BEQ.b CheckControl
+
+SpinWalljump:
+	LDA.b #1
+	STA.w !RAM_SMW_Player_SpinJumpFlag
+	LDA.b #!Define_SMW_Sound1DFC_SpinJump
+	STA.w !RAM_SMW_IO_SoundCh3
+	BRA.b CheckWalljumpSide
+
+NormalWalljump:
+	STZ.w !RAM_SMW_Player_SpinJumpFlag
+	LDA.b #!Define_SMW_Sound1DFA_Jump
+	STA.w !RAM_SMW_IO_SoundCh2
+
+CheckWalljumpSide:
 	LDA.b !RAM_SMW_Player_HorizontalSideOfBlockBeingTouched
 	BNE.b WalljumpRight
 
 WalljumpLeft:
 	STZ.b !RAM_SMW_Player_FacingDirection
-	LDA.b #-30
+	LDA.b #-36
 	BRA.b Walljump
 
 WalljumpRight:
 	LDA.b #1
 	STA.b !RAM_SMW_Player_FacingDirection
-	LDA.b #30
+	LDA.b #36
 
 Walljump:
 	STA.b !RAM_SMW_Player_XSpeed
 	LDA.b #-74
 	STA.b !RAM_SMW_Player_YSpeed
-
-	LDA.b #!Define_SMW_Sound1DFA_Jump
-	STA.w !RAM_SMW_IO_SoundCh2
 
 	LDA.b #20
 	STA.w DUO.Player_WalljumpTimer
