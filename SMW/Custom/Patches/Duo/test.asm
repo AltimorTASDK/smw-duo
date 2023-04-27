@@ -1,5 +1,32 @@
 ; Before 1.5x multiplier (subpixels)
-!Define_DUO_LongJumpSpeed = (43<<8)
+!Define_DUO_LongJumpSpeed  = (31<<8)
+!Define_DUO_LongJumpPSpeed = (43<<8)
+
+org SMW_CheckIfBlockWasHit_DATA_00F05C
+	; Modify index 0D from 06 -> 07 to make spin blocks breakable
+	db $01,$05,$01,$02,$01,$01,$00,$00
+	db $00,$00,$00,$00,$00,$07,$02,$02
+	db $02,$02,$02,$02,$02,$02,$02,$02
+	db $02,$03,$03,$04,$02,$02,$02,$01
+	db $01,$07,$11,$10
+
+; Fix coins being replaced by invisible blocks when
+; collected by a block hit from below
+org SMW_GetBounceSpriteLevelCollisionMap16ID_CODE_02931A+$28
+namespace DUO_GetBounceSpriteLevelCollisionMap16ID_FixCoinBug
+	JSL.l Main
+	NOP
+	JSR.w SMW_SpawnMap16TileFromBounceSprite_Main
+freecode
+Main:
+	; Overwritten code
+	SBC.b #$00
+	STA.w !RAM_SMW_BounceSpr_YPosHi,x
+
+	LDA.b #2
+
+	RTL
+namespace off
 
 ; Update wall touch flag
 org SMW_RunPlayerBlockCode_LMBlockOffset_MarioSide+3
@@ -38,6 +65,14 @@ Main:
 +:
 	CMP.b #35
 	BMI.b Return
+
+	; Check if in air without full P meter
+	LDA.w !RAM_SMW_Player_PMeter
+	CMP.b #!Define_SMW_Physics_PMeterMax
+	BPL.b Increment
+
+	LDA.b !RAM_SMW_Player_InAirFlag
+	BNE.b Return
 
 Increment:
 	LDY.b #2
@@ -164,8 +199,14 @@ LongJump:
 
 	%Mode16BitA()
 
-	; Cap to max speed
+	; Cap to max long jump speed
 	LDA.b !RAM_SMW_Player_SubXSpeed
+
+	LDX.w !RAM_SMW_Player_PMeter
+	CPX.b #!Define_SMW_Physics_PMeterMax
+	BPL.b LongJumpCapPSpeed
+
+LongJumpCapSpeed:
 	CMP.w #!Define_DUO_LongJumpSpeed
 	BPL.b LongJumpCapSpeedRight
 	CMP.w #-!Define_DUO_LongJumpSpeed
@@ -177,6 +218,20 @@ LongJumpCapSpeedLeft:
 
 LongJumpCapSpeedRight:
 	LDA.w #!Define_DUO_LongJumpSpeed
+	BRA.b LongJumpSpeed
+
+LongJumpCapPSpeed:
+	CMP.w #!Define_DUO_LongJumpPSpeed
+	BPL.b LongJumpCapPSpeedRight
+	CMP.w #-!Define_DUO_LongJumpPSpeed
+	BPL.b LongJumpSpeed
+
+LongJumpCapPSpeedLeft:
+	LDA.w #-!Define_DUO_LongJumpPSpeed
+	BRA.b LongJumpSpeed
+
+LongJumpCapPSpeedRight:
+	LDA.w #!Define_DUO_LongJumpPSpeed
 
 LongJumpSpeed:
 	; Multiply X speed by 1.5
@@ -302,6 +357,33 @@ Return:
 	RTL
 namespace off
 
+; Make the camera scroll up when walljumping or high jumping
+org SMW_HandleStandardLevelCameraScroll_CODE_00F875
+namespace DUO_HandleStandardLevelCameraScroll_Walljump
+	LDX.w !RAM_SMW_Flag_ScrollUpToPlayer
+	BNE.b AlreadyScrolling
+	JSL.l Main
+	NOP
+	BNE.b SMW_HandleStandardLevelCameraScroll_Return00F8AA
+AlreadyScrolling:
+freecode
+Main:
+	LDX.b !RAM_SMW_Player_InAirFlag
+	BEQ.b Scroll
+	LDX.w DUO.Player_WalljumpTimer
+	BNE.b Scroll
+	LDX.w DUO.Player_HighJumpFlag
+	BNE.b Scroll
+NoScroll:
+	LDX.b #1
+	RTL
+Scroll:
+	INC.w !RAM_SMW_Flag_ScrollUpToPlayer
+	LDX.b #0
+	RTL
+namespace off
+
+; Prevent running when high jumping
 org SMW_HandlePlayerPhysics_CODE_00D713
 namespace DUO_HandlePlayerPhysics_HighJumpSpeedCap
 	JSL.l Main
@@ -321,6 +403,7 @@ Return:
 	RTL
 namespace off
 
+; Limit terminal velocity when high jumping
 org SMW_HandlePlayerPhysics_CODE_00D92E
 namespace DUO_HandlePlayerPhysics_HighJumpFallSpeed
 	LDY.b #$00
@@ -347,6 +430,23 @@ CheckHighJump:
 
 Return:
 	RTL
+namespace off
+
+org SMW_RunPlayerBlockCode_CODE_00F2EE
+namespace DUO_RunPlayerBlockCode_HandleSpecialBlocks
+	JML.l Main
+freecode
+Main:
+	; Overwritten code
+	CPY.b #$06
+	BEQ.b Vine
+	CPY.b #$6A
+	BEQ.b MushroomBlock
+	JML.l SMW_RunPlayerBlockCode_CODE_00F2EE+4
+MushroomBlock:
+	JML.l SMW_RunPlayerBlockCode_CODE_00F2E0
+Vine:
+	JML.l SMW_RunPlayerBlockCode_CODE_00F2FC
 namespace off
 
 freecode

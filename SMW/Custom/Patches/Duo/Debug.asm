@@ -205,7 +205,7 @@ PLoop:
 	CPY.b !RAM_SMW_Misc_ScratchRAM00
 	BMI.b PNotFilled
 PFilled:
-	LDA.b #$35
+	LDA.b #$3D
 	BRA.b PNext
 PNotFilled:
 	LDA.b #$39
