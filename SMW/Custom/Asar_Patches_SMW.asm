@@ -23,7 +23,7 @@ incsrc "Patches/PiranhaFixed/PIR.asm"
 
 incsrc "Patches/Duo/RAM_Map_DUO.asm"
 incsrc "Patches/Duo/Utility.asm"
-incsrc "Patches/Duo/test.asm"
+incsrc "Patches/Duo/Physics.asm"
 incsrc "Patches/Duo/Debug.asm"
 
 endmacro
