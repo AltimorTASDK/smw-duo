@@ -1,5 +1,5 @@
 ; Before 1.5x multiplier (subpixels)
-!Define_DUO_LongJumpSpeed  = (31<<8)
+!Define_DUO_LongJumpSpeed  = (32<<8)
 !Define_DUO_LongJumpPSpeed = (43<<8)
 
 ; Update wall touch flag
