@@ -35,6 +35,8 @@ macro SMW_ApplyPatchesPostAssembly()
 ; Insert your patch references here that will be assembled after the ROM has been assembled.
 ; Use this macro for patches that don't work correctly while the ROM is assembling, like ones that use the readX commands or haven't been integrated into this disassembly.
 
+incsrc "Patches/SA1/remap/sprite_memory.asm" ; Remaps Sprite Memory*
+
 endmacro
 endif
 

@@ -22,7 +22,7 @@ macro remap_memory()
 endmacro
 
 ; Change all sprite memory to $08 only if it's a clean ROM.
-; if read1($0DA691+2) != $7E
-; 	!count = 0
-; 	rep 512 : %remap_memory()
-; endif
+if read1($0DA691+2) != $7E
+	!count = 0
+	rep 512 : %remap_memory()
+endif

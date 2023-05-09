@@ -7,7 +7,7 @@
 
 !ZSNES		= 1				; Put 0 if you don't want to SA-1 Pack automatically deal with ZSNES limitations.
 						; (in other words, put 0 if you don't want ZSNES 1.51 or older support)
-						
+
 !DSX		= 1				; Put 0 if you want to turn off legacy (Dynamic Sprites) patch support.
 						; (as anoni's Dynamic Z should obsolete it soon.)
 
@@ -32,11 +32,11 @@ incsrc "remap/addr.asm"				; Remaps $7E:0100-$7E:1FFF
 incsrc "remap/sram.asm"				; Remaps SRAM
 incsrc "remap/map16.asm"			; Remaps Map16
 incsrc "remap/dma.asm"				; Remaps DMA channels*
-incsrc "remap/sprite_memory.asm"		; Remaps Sprite Memory*
+;incsrc "remap/sprite_memory.asm"		; Remaps Sprite Memory*
 
 org $FFFC					; \ Change Reset Vector.
 	dw Reset2				; /
-	
+
 org $FFEE					; \ Change S-CPU IRQ Vector.
 	dw snes_irq				; / snes_irq points at W-RAM.
 
@@ -66,7 +66,7 @@ if read1($0DA691+2) != $7E			; \ $00:8A60 - Default vanilla SA-1 ROM bank switch
 endif						; /
 
 org $8A64
-	
+
 Reset:						; \ Use the "unused" space
 !c	JML SA1_Reset				;  | to store some vectors.
 						;  |
@@ -87,7 +87,7 @@ warnpc $8A78
 
 ORG $8069					; \ Restore old code
 	INC $10					; /
-	
+
 if read1($806B) != $5C				; \  This hijack lets Background Mode
 ORG $806B					;  | run at 10.74 MHz while SNES is idle.
 	JMP ram_main_loop_start			;  |
@@ -96,21 +96,21 @@ endif						; /
 
 ORG $801F					; \ Set Direct Page to $3000.
 	LDA #$3000				; /
-	
+
 ORG $8023					; \ Set Stack Pointer to $1FFF.
 	LDA #$1FFF				; /
-	
-ORG $816A					; \ Hijack NMIStart for Dynamic Sprites and 
+
+ORG $816A					; \ Hijack NMIStart for Dynamic Sprites and
 !c	JML snes_nmi				; / Character Conversion DMA Table
 
 ORG $843B					; Restore old WaitForHBlank code
 	BIT $4212
 	BVS $F9
-	
+
 org $83F6
 	NOP #3
 	;JSR RAMCode_WaitForHBlank
-	
+
 org $8391
 	NOP #3
 	;JSR RAMCode_WaitForHBlank
@@ -121,19 +121,19 @@ org $83C8
 
 org $82BC
 	JML snes_nmi_end
-	
+
 org $83B2
 	JML snes_nmi_end2
 
 org $827A
 	LDX #$81
-	
+
 org $829F
 	LDX #$A1
 	BRA +
 	NOP
 +
-	
+
 ;===============================================;
 ; Main Code					;
 ;===============================================;
@@ -176,7 +176,7 @@ ClearStack:					; Based from QuickROM, by Alcaro.
 -	DEX					;  |
 	BPL -					; /
 .DoNotWasteTime					;
-	LDA #$00				; \ Set up/Init other RAM.		
+	LDA #$00				; \ Set up/Init other RAM.
 	STA $7F837B				;  |
 	STA $7F837C				;  |
 	LDA #$FF				;  |
@@ -205,7 +205,7 @@ ClearStack:					; Based from QuickROM, by Alcaro.
 	SEP #$30				; 8-bit A/X/Y
 	PLB					; Restore Bank
 	RTL					; Return
-	
+
 SA1_Reset:					;
 	SEI					; \ Disable IRQ and Emulation Mode
 	CLC					;  |
@@ -277,7 +277,7 @@ SA1_Reset:					;
 	PEA $0100				; \ Set DP to $0100
 	PLD					; /
 						;
-SA1_Loop:					;				
+SA1_Loop:					;
 	LDA $8B					; \ Loop until a Background Mode is enabled
 	BEQ SA1_Loop				; / (or wait for a IRQ for SNES call)
 						;
@@ -288,7 +288,7 @@ BackgroundMode:					;
 .End						;
 	STZ $8B					; \ Clear Background Flag and Return to Main Loop.
 	BRA SA1_Loop				; /
-							
+
 SA1_IRQ:					; SA-1 CPU IRQ
 	;PHP					; \ Preserve P/A/X/Y/D/B
 	REP #$30				;  |
@@ -310,7 +310,7 @@ SA1_IRQ:					; SA-1 CPU IRQ
 						;
 	LDA $2301				; Read status register
 	BIT #$40				; \ If $40 is set, go to Timer IRQ
-	BNE SA1_IRQEnding			; / 
+	BNE SA1_IRQEnding			; /
 	BIT #$20				; \ If $20 is set, go to DMA end code
 	BNE DMA_End				; /
 						;
@@ -357,17 +357,17 @@ ProcessRequest:
 	SEI					; Disable IRQ
 	INC $0189				; Set Ready Flag
 	BRA SA1_IRQEnding			; Return
-	
+
 EnableChvDMA:
 	LDA #$B0				; \ Enable Character Conversion DMA CC1 (BW-RAM->I-RAM)
 	STA $318D				;  |
 	STA $2230				; /
 	BRA SA1_IRQEnding			; Return
-	
+
 DisableDMA:					; \ Disable SA-1 DMA (of any type)
 	STZ $2230				;  |
 	BRA SA1_IRQEnding			; /
-	
+
 ProcessIRQRequest:				; \ Same as Process Request, but
 	LDA #$B0				;  | it's to use in a S-CPU IRQ/NMI
 	STA $220B				;  | and this doesn't accept any
@@ -380,6 +380,6 @@ NoMessage:					;  |
 	BRA SA1_IRQEnding			; /
 
 incsrc "more_sprites/more_sprites.asm"
-	
+
 print "Insert size............. ", freespaceuse, " bytes."
 print "Total bytes modified.... ", bytes, " bytes."
