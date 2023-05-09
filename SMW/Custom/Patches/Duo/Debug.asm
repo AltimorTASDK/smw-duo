@@ -10,7 +10,7 @@ org SMW_InitializeStatusBarTilemap_BufferStatusCounterRAMLoop
 namespace DUO_InitializeStatusBarTilemap
 	; Original code
 	LDA.w SMW_StatusBarTilemap_SecondRow,y
-	STA.w !RAM_SMW_Misc_StatusBarTilemap,x
+	STA.w !RAM_SA1_Misc_StatusBarTilemap,x
 	DEY
 	DEY
 	DEX
@@ -21,7 +21,7 @@ freecode
 Main:
 	; Overwritten code
 	LDA.b #!Define_SMW_Counter_TimerFrames
-	STA.w !RAM_SMW_Counter_TimerFrames
+	STA.w !RAM_SA1_Counter_TimerFrames
 
 	; Initialize new row
 	LDA.b #$80
@@ -122,7 +122,7 @@ namespace DUO_UpdateStatusBarCounters
 freecode
 Main:
 	; Write X
-	LDX.b !RAM_SMW_Player_XSpeed
+	LDX.b !RAM_SA1_Player_XSpeed
 	BPL.b PositiveX
 
 	; Write minus
@@ -131,7 +131,7 @@ Main:
 	TAY
 	TXA
 	EOR.b #$FF
-	LDX.b !RAM_SMW_Player_SubXSpeed
+	LDX.b !RAM_SA1_Player_SubXSpeed
 	BNE.b +
 	INC
 +:
@@ -158,7 +158,7 @@ WriteTensX:
 	STA.l DUO_Hi.Misc_StatusBarTilemap_XSpeed+2
 
 	; Write Y
-	LDX.b !RAM_SMW_Player_YSpeed
+	LDX.b !RAM_SA1_Player_YSpeed
 	BPL.b PositiveY
 
 	; Write minus
@@ -167,7 +167,7 @@ WriteTensX:
 	TAY
 	TXA
 	EOR.b #$FF
-	LDX.b !RAM_SMW_Player_SubYSpeed
+	LDX.b !RAM_SA1_Player_SubYSpeed
 	BNE.b +
 	INC
 +:
@@ -196,13 +196,13 @@ WriteTensY:
 UpdatePMeter:
 	LDA.b #0
 	LDX.b #0
-	LDY.w !RAM_SMW_Player_PMeter
+	LDY.w !RAM_SA1_Player_PMeter
 
 PLoop:
 	CLC
 	ADC.b #!Define_SMW_Physics_PMeterMax/8
-	STA.b !RAM_SMW_Misc_ScratchRAM00
-	CPY.b !RAM_SMW_Misc_ScratchRAM00
+	STA.b !RAM_SA1_Misc_ScratchRAM00
+	CPY.b !RAM_SA1_Misc_ScratchRAM00
 	BMI.b PNotFilled
 PFilled:
 	LDA.b #$3D
@@ -211,15 +211,15 @@ PNotFilled:
 	LDA.b #$39
 PNext:
 	STA.l DUO_Hi.Misc_StatusBarTilemap_PMeter+1,x
-	LDA.b !RAM_SMW_Misc_ScratchRAM00
+	LDA.b !RAM_SA1_Misc_ScratchRAM00
 	INX
 	INX
 	CMP.b #!Define_SMW_Physics_PMeterMax
 	BMI.b PLoop
 
 	; Overwritten code
-	LDA.w !RAM_SMW_Timer_EndLevel
-	ORA.b !RAM_SMW_Flag_SpritesLocked
+	LDA.w !RAM_SA1_Timer_EndLevel
+	ORA.b !RAM_SA1_Flag_SpritesLocked
 
 	RTL
 namespace off

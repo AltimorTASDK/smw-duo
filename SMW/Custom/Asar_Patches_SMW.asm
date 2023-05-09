@@ -19,10 +19,13 @@ macro SMW_InsertIntegratedPatches()
 ;incsrc "Patches/Default/MakeSpecialLevelsViewableInLM.asm"
 ;incsrc "Patches/Default/DebugFunctions.asm"
 
+incsrc "Patches/SA1/sa1.asm"
+
 incsrc "Patches/PiranhaFixed/PIR.asm"
 
 incsrc "Patches/Duo/RAM_Map_DUO.asm"
 incsrc "Patches/Duo/Utility.asm"
+incsrc "Patches/Duo/Blocks.asm"
 incsrc "Patches/Duo/Physics.asm"
 incsrc "Patches/Duo/Debug.asm"
 

@@ -2,32 +2,6 @@
 !Define_DUO_LongJumpSpeed  = (31<<8)
 !Define_DUO_LongJumpPSpeed = (43<<8)
 
-org SMW_CheckIfBlockWasHit_DATA_00F05C
-	; Modify index 0D from 06 -> 07 to make spin blocks breakable
-	db $01,$05,$01,$02,$01,$01,$00,$00
-	db $00,$00,$00,$00,$00,$07,$02,$02
-	db $02,$02,$02,$02,$02,$02,$02,$02
-	db $02,$03,$03,$04,$02,$02,$02,$01
-	db $01,$07,$11,$10
-
-; Fix coins being replaced by invisible blocks when
-; collected by a block hit from below
-org SMW_GetBounceSpriteLevelCollisionMap16ID_CODE_02931A+$28
-namespace DUO_GetBounceSpriteLevelCollisionMap16ID_FixCoinBug
-	JSL.l Main
-	NOP
-	JSR.w SMW_SpawnMap16TileFromBounceSprite_Main
-freecode
-Main:
-	; Overwritten code
-	SBC.b #$00
-	STA.w !RAM_SMW_BounceSpr_YPosHi,x
-
-	LDA.b #2
-
-	RTL
-namespace off
-
 ; Update wall touch flag
 org SMW_RunPlayerBlockCode_LMBlockOffset_MarioSide+3
 namespace DUO_RunPlayerBlockCode_UpdateWallFlag
@@ -53,12 +27,12 @@ namespace DUO_HandlePlayerPhysics_UpdatePMeter
 freecode
 Main:
 	; Check run held
-	LDA.w !RAM_SMW_IO_ControllerHold1
+	LDA.w !RAM_SA1_IO_ControllerHold1
 	AND.b #!Joypad_X|(!Joypad_Y>>8)
 	BEQ.b Return
 
 	; Check speed
-	LDA.b !RAM_SMW_Player_XSpeed
+	LDA.b !RAM_SA1_Player_XSpeed
 	BPL.b +
 	EOR.b #$FF
 	INC
@@ -67,11 +41,11 @@ Main:
 	BMI.b Return
 
 	; Check if in air without full P meter
-	LDA.w !RAM_SMW_Player_PMeter
+	LDA.w !RAM_SA1_Player_PMeter
 	CMP.b #!Define_SMW_Physics_PMeterMax
 	BPL.b Increment
 
-	LDA.b !RAM_SMW_Player_InAirFlag
+	LDA.b !RAM_SA1_Player_InAirFlag
 	BNE.b Return
 
 Increment:
@@ -79,7 +53,7 @@ Increment:
 
 Return:
 	; Overwritten code
-	LDA.w !RAM_SMW_Player_PMeter
+	LDA.w !RAM_SA1_Player_PMeter
 	CLC
 	RTL
 namespace off
@@ -91,7 +65,7 @@ namespace DUO_HandlePlayerPhysics_Accel
 freecode
 Main:
 	; Fix speed oscillation
-	LDA.b !RAM_SMW_Player_XSpeed
+	LDA.b !RAM_SA1_Player_XSpeed
 	SEC
 	SBC.w SMW_HandlePlayerPhysics_DATA_00D535,y
 	BEQ.b NoAccel
@@ -100,39 +74,39 @@ Main:
 
 	; Store 16-bit max speed
 	LDA.w SMW_HandlePlayerPhysics_DATA_00D535,y
-	STZ.b !RAM_SMW_Misc_ScratchRAM00
-	STA.b !RAM_SMW_Misc_ScratchRAM01
+	STZ.b !RAM_SA1_Misc_ScratchRAM00
+	STA.b !RAM_SA1_Misc_ScratchRAM01
 
 	%Mode16BitA()
 
 	LDA.w SMW_HandlePlayerPhysics_MarioAccel,x
-	LDY.b !RAM_SMW_Flag_IceLevel
+	LDY.b !RAM_SA1_Flag_IceLevel
 	BEQ.b NoIce
-	LDY.b !RAM_SMW_Player_InAirFlag
+	LDY.b !RAM_SA1_Player_InAirFlag
 	BNE.b NoIce
 	LDA.w SMW_HandlePlayerPhysics_DATA_00D43D,x
 NoIce:
 	CLC
-	ADC.b !RAM_SMW_Player_SubXSpeed
-	STA.b !RAM_SMW_Misc_ScratchRAM02
+	ADC.b !RAM_SA1_Player_SubXSpeed
+	STA.b !RAM_SA1_Misc_ScratchRAM02
 
 	; Check that acceleration didn't put Mario over max speed
 	SEC
-	SBC.w !RAM_SMW_Misc_ScratchRAM00
+	SBC.w !RAM_SA1_Misc_ScratchRAM00
 	BEQ.b HitSpeedCap
-	EOR.w !RAM_SMW_Misc_ScratchRAM00
+	EOR.w !RAM_SA1_Misc_ScratchRAM00
 	BPL.b HitSpeedCap
 
-	LDA.w !RAM_SMW_Misc_ScratchRAM02
+	LDA.w !RAM_SA1_Misc_ScratchRAM02
 	JML.l SMW_HandlePlayerPhysics_CODE_00D7A0
 
 HitSpeedCap:
-	LDA.w !RAM_SMW_Misc_ScratchRAM00
+	LDA.w !RAM_SA1_Misc_ScratchRAM00
 	JML.l SMW_HandlePlayerPhysics_CODE_00D7A0
 
 NoAccel:
 	; Get rid of any excess subpixel speed
-	STZ.b !RAM_SMW_Player_SubXSpeed
+	STZ.b !RAM_SA1_Player_SubXSpeed
 	JML.l SMW_HandlePlayerPhysics_Return00D7A4
 
 SlowDown:
@@ -149,10 +123,10 @@ Main:
 	; Don't walljump when jumping against a corner
 	STZ.w DUO.Player_WallTouchFlag
 
-	LDA.w !RAM_SMW_Player_SpinJumpFlag
+	LDA.w !RAM_SA1_Player_SpinJumpFlag
 	BEQ.b NormalJump
 
-	LDA.b !RAM_SMW_IO_ControllerHold1
+	LDA.b !RAM_SA1_IO_ControllerHold1
 	AND.b #!Joypad_DPadU>>8
 	BNE.b HighJump
 
@@ -160,7 +134,7 @@ Main:
 	CPX.b #4
 	BCC.b NormalJump
 
-	LDA.b !RAM_SMW_IO_ControllerHold1
+	LDA.b !RAM_SA1_IO_ControllerHold1
 	AND.b #!Joypad_DPadD>>8
 	BNE.b LongJump
 
@@ -171,7 +145,7 @@ HighJump:
 	STA.w DUO.Player_HighJumpFlag
 
 	; Cap to walk speed
-	LDA.b !RAM_SMW_Player_XSpeed
+	LDA.b !RAM_SA1_Player_XSpeed
 	CMP.b #20
 	BPL.b HighJumpCapSpeedRight
 	CMP.b #-20
@@ -179,30 +153,30 @@ HighJump:
 
 HighJumpCapSpeedLeft:
 	LDA.b #-20
-	STZ.b !RAM_SMW_Player_SubXSpeed
+	STZ.b !RAM_SA1_Player_SubXSpeed
 	BRA.b HighJumpSpeed
 
 HighJumpCapSpeedRight:
 	LDA.b #20
-	STZ.b !RAM_SMW_Player_SubXSpeed
+	STZ.b !RAM_SA1_Player_SubXSpeed
 
 HighJumpSpeed:
-	STA.b !RAM_SMW_Player_XSpeed
+	STA.b !RAM_SA1_Player_XSpeed
 	LDA.b #-102
 	BRA.b SetYSpeed
 
 LongJump:
 	LDA.b #1
 	STA.w DUO.Player_LongJumpFlag
-	STZ.w !RAM_SMW_Player_SpinJumpFlag
-	STZ.w !RAM_SMW_Player_DuckingFlag
+	STZ.w !RAM_SA1_Player_SpinJumpFlag
+	STZ.w !RAM_SA1_Player_DuckingFlag
 
 	%Mode16BitA()
 
 	; Cap to max long jump speed
-	LDA.b !RAM_SMW_Player_SubXSpeed
+	LDA.b !RAM_SA1_Player_SubXSpeed
 
-	LDX.w !RAM_SMW_Player_PMeter
+	LDX.w !RAM_SA1_Player_PMeter
 	CPX.b #!Define_SMW_Physics_PMeterMax
 	BPL.b LongJumpCapPSpeed
 
@@ -235,12 +209,12 @@ LongJumpCapPSpeedRight:
 
 LongJumpSpeed:
 	; Multiply X speed by 1.5
-	STA.b !RAM_SMW_Misc_ScratchRAM00
+	STA.b !RAM_SA1_Misc_ScratchRAM00
 	CMP.w #$8000 ; Set carry to sign
 	ROR
 	CLC
-	ADC.b !RAM_SMW_Misc_ScratchRAM00
-	STA.b !RAM_SMW_Player_SubXSpeed
+	ADC.b !RAM_SA1_Misc_ScratchRAM00
+	STA.b !RAM_SA1_Player_SubXSpeed
 
 	%Mode8BitA()
 
@@ -260,14 +234,14 @@ NormalJump:
 	LDA.w SMW_HandlePlayerPhysics_JumpHeightTable,x
 
 SetYSpeed:
-	STA.b !RAM_SMW_Player_YSpeed
+	STA.b !RAM_SA1_Player_YSpeed
 	RTL
 namespace off
 
 ; Handles movement control toggle and walljumps
 org SMW_HandlePlayerPhysics_CODE_00D682
 namespace DUO_HandlePlayerPhysics_AirControlAndWalljump
-	LDA.w !RAM_SMW_Player_SlidingOnGround
+	LDA.w !RAM_SA1_Player_SlidingOnGround
 	BMI.b SMW_HandlePlayerPhysics_CODE_00D692
 	JSL.l Main
 freecode
@@ -283,47 +257,47 @@ Main:
 	BEQ.b CheckControl
 
 	; Check if airborne
-	LDA.b !RAM_SMW_Player_InAirFlag
+	LDA.b !RAM_SA1_Player_InAirFlag
 	BEQ.b CheckControl
 
 	; Check for A/B press
-	LDA.b !RAM_SMW_IO_ControllerPress1
+	LDA.b !RAM_SA1_IO_ControllerPress1
 	AND.b #!Joypad_B>>8
 	BNE.b NormalWalljump
-	ORA.b !RAM_SMW_IO_ControllerPress2
+	ORA.b !RAM_SA1_IO_ControllerPress2
 	AND.b #!Joypad_A
 	BEQ.b CheckControl
 
 SpinWalljump:
 	LDA.b #1
-	STA.w !RAM_SMW_Player_SpinJumpFlag
+	STA.w !RAM_SA1_Player_SpinJumpFlag
 	LDA.b #!Define_SMW_Sound1DFC_SpinJump
-	STA.w !RAM_SMW_IO_SoundCh3
+	STA.w !RAM_SA1_IO_SoundCh3
 	BRA.b CheckWalljumpSide
 
 NormalWalljump:
-	STZ.w !RAM_SMW_Player_SpinJumpFlag
+	STZ.w !RAM_SA1_Player_SpinJumpFlag
 	LDA.b #!Define_SMW_Sound1DFA_Jump
-	STA.w !RAM_SMW_IO_SoundCh2
+	STA.w !RAM_SA1_IO_SoundCh2
 
 CheckWalljumpSide:
-	LDA.b !RAM_SMW_Player_HorizontalSideOfBlockBeingTouched
+	LDA.b !RAM_SA1_Player_HorizontalSideOfBlockBeingTouched
 	BNE.b WalljumpRight
 
 WalljumpLeft:
-	STZ.b !RAM_SMW_Player_FacingDirection
+	STZ.b !RAM_SA1_Player_FacingDirection
 	LDA.b #-36
 	BRA.b Walljump
 
 WalljumpRight:
 	LDA.b #1
-	STA.b !RAM_SMW_Player_FacingDirection
+	STA.b !RAM_SA1_Player_FacingDirection
 	LDA.b #36
 
 Walljump:
-	STA.b !RAM_SMW_Player_XSpeed
+	STA.b !RAM_SA1_Player_XSpeed
 	LDA.b #-74
-	STA.b !RAM_SMW_Player_YSpeed
+	STA.b !RAM_SA1_Player_YSpeed
 
 	LDA.b #20
 	STA.w DUO.Player_WalljumpTimer
@@ -333,7 +307,7 @@ Walljump:
 
 CheckControl:
 	; Overwritten code (exit if L/R not held)
-	LDA.b !RAM_SMW_IO_ControllerHold1
+	LDA.b !RAM_SA1_IO_ControllerHold1
 	AND.b #(!Joypad_DPadL>>8)|(!Joypad_DPadR>>8)
 	BEQ.b Return
 
@@ -360,7 +334,7 @@ namespace off
 ; Make the camera scroll up when walljumping or high jumping
 org SMW_HandleStandardLevelCameraScroll_CODE_00F875
 namespace DUO_HandleStandardLevelCameraScroll_Walljump
-	LDX.w !RAM_SMW_Flag_ScrollUpToPlayer
+	LDX.w !RAM_SA1_Flag_ScrollUpToPlayer
 	BNE.b AlreadyScrolling
 	JSL.l Main
 	NOP
@@ -368,7 +342,7 @@ namespace DUO_HandleStandardLevelCameraScroll_Walljump
 AlreadyScrolling:
 freecode
 Main:
-	LDX.b !RAM_SMW_Player_InAirFlag
+	LDX.b !RAM_SA1_Player_InAirFlag
 	BEQ.b Scroll
 	LDX.w DUO.Player_WalljumpTimer
 	BNE.b Scroll
@@ -378,7 +352,7 @@ NoScroll:
 	LDX.b #1
 	RTL
 Scroll:
-	INC.w !RAM_SMW_Flag_ScrollUpToPlayer
+	INC.w !RAM_SA1_Flag_ScrollUpToPlayer
 	LDX.b #0
 	RTL
 namespace off
@@ -391,7 +365,7 @@ freecode
 Main:
 	; Overwritten code (exit if run not held)
 	LDY.b #$00
-	BIT.b !RAM_SMW_IO_ControllerHold1
+	BIT.b !RAM_SA1_IO_ControllerHold1
 	BVC.b Return
 
 	; Set overflow if high jump flag not set
@@ -407,7 +381,7 @@ namespace off
 org SMW_HandlePlayerPhysics_CODE_00D92E
 namespace DUO_HandlePlayerPhysics_HighJumpFallSpeed
 	LDY.b #$00
-	LDA.b !RAM_SMW_Player_YSpeed
+	LDA.b !RAM_SA1_Player_YSpeed
 	BMI.b SMW_HandlePlayerPhysics_CODE_00D948
 	CMP.w SMW_HandlePlayerPhysics_DATA_00D7AF,y
 	JSL.l Main
@@ -464,7 +438,7 @@ freecode
 Main:
 	; Overwritten code
 	LDA.b #!Define_SMW_LevelMusic_MarioDied
-	STA.w !RAM_SMW_IO_MusicCh1
+	STA.w !RAM_SA1_IO_MusicCh1
 	JSL.l DUO_ResetAirFlags
 	RTL
 namespace off
@@ -476,8 +450,8 @@ namespace DUO_RunPlayerBlockCode_Land_ResetAirFlags
 freecode
 Main:
 	; Overwritten code
-	STZ.w !RAM_SMW_Flag_StandingOnBetaCage
-	STZ.b !RAM_SMW_Player_InAirFlag
+	STZ.w !RAM_SA1_Flag_StandingOnBetaCage
+	STZ.b !RAM_SA1_Player_InAirFlag
 	JSL.l DUO_ResetAirFlags
 	RTL
 namespace off
@@ -489,8 +463,8 @@ namespace DUO_HandlePlayerPhysics_Swimming_ResetAirFlags
 freecode
 Main:
 	; Overwritten code
-	STZ.w !RAM_SMW_Player_SlidingOnGround
-	STZ.b !RAM_SMW_Player_DuckingFlag
+	STZ.w !RAM_SA1_Player_SlidingOnGround
+	STZ.b !RAM_SA1_Player_DuckingFlag
 	JSL.l DUO_ResetAirFlags
 	RTL
 namespace off
@@ -501,24 +475,24 @@ namespace DUO_HandlePlayerPhysics_Climbing_ResetAirFlags
 freecode
 Main:
 	; Overwritten code
-	STZ.b !RAM_SMW_Player_InAirFlag
-	STZ.b !RAM_SMW_Player_YSpeed
+	STZ.b !RAM_SA1_Player_InAirFlag
+	STZ.b !RAM_SA1_Player_YSpeed
 	JSL.l DUO_ResetAirFlags
 	RTL
 namespace off
 
 org SMW_PlayerState0A_NoYoshiCutscene_CODE_00C8EC
 namespace DUO_PlayerState0A_NoYoshiCutscene_Land_ResetAirFlags
-	CMP.b !RAM_SMW_Player_YPosLo
+	CMP.b !RAM_SA1_Player_YPosLo
 	BCS.b SMW_PlayerState0A_NoYoshiCutscene_CODE_00C8F8
 	INC
 	JSL.l Main
-	STZ.w !RAM_SMW_Player_SpinJumpFlag
+	STZ.w !RAM_SA1_Player_SpinJumpFlag
 freecode
 Main:
 	; Overwritten code
-	STA.b !RAM_SMW_Player_YPosLo
-	STZ.b !RAM_SMW_Player_InAirFlag
+	STA.b !RAM_SA1_Player_YPosLo
+	STZ.b !RAM_SA1_Player_InAirFlag
 	JSL.l DUO_ResetAirFlags
 	RTL
 namespace off
