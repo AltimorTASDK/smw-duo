@@ -21,8 +21,6 @@ macro SMW_InsertIntegratedPatches()
 
 incsrc "Patches/SA1/sa1.asm"
 
-incsrc "Patches/PiranhaFixed/PIR.asm"
-
 incsrc "Patches/Duo/RAM_Map_DUO.asm"
 incsrc "Patches/Duo/Utility.asm"
 incsrc "Patches/Duo/Blocks.asm"
@@ -36,6 +34,8 @@ macro SMW_ApplyPatchesPostAssembly()
 ; Use this macro for patches that don't work correctly while the ROM is assembling, like ones that use the readX commands or haven't been integrated into this disassembly.
 
 incsrc "Patches/SA1/remap/sprite_memory.asm" ; Remaps Sprite Memory*
+
+incsrc "Patches/PiranhaFixed/PIR.asm"
 
 endmacro
 endif
