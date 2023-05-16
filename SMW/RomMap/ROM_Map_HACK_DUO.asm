@@ -60,7 +60,7 @@ macro SMW_GlobalAssemblySettings()
 	!Define_Global_ROMLayout = !ROMLayout_LoROM
 	!Define_Global_ROMType = !ROMType_ROM_RAM_SRAM
 	!Define_Global_CustomChip = !Chip_None
-	!Define_Global_ROMSize = !ROMSize_1MB
+	!Define_Global_ROMSize = !ROMSize_2MB
 	!Define_Global_SRAMSize = !SRAMSize_2KB
 	!Define_Global_Region = !Region_NorthAmerica
 	!Define_Global_LicenseeID = $01
