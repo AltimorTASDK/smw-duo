@@ -9,6 +9,8 @@
 
 ;---------------------------------------------------------------------------
 
+!Define_DUO_SA1 = !FALSE
+
 if !Define_Global_ApplyAsarPatches == !TRUE
 macro SMW_InsertIntegratedPatches()
 ; Insert your patch references here that will be assembled during ROM assembly
@@ -19,13 +21,18 @@ macro SMW_InsertIntegratedPatches()
 ;incsrc "Patches/Default/MakeSpecialLevelsViewableInLM.asm"
 ;incsrc "Patches/Default/DebugFunctions.asm"
 
-incsrc "Patches/SA1/sa1.asm"
+if !Define_DUO_SA1 != !FALSE
+	incsrc "Patches/SA1/sa1.asm"
+endif
 
 incsrc "Patches/Duo/RAM_Map_DUO.asm"
 incsrc "Patches/Duo/Utility.asm"
 incsrc "Patches/Duo/Blocks.asm"
-incsrc "Patches/Duo/Physics.asm"
 incsrc "Patches/Duo/Debug.asm"
+incsrc "Patches/Duo/Graphics.asm"
+incsrc "Patches/Duo/Physics.asm"
+incsrc "Patches/Duo/Sprites/Powerups.asm"
+incsrc "Patches/Duo/Sprites/Shooters.asm"
 
 endmacro
 
@@ -33,7 +40,9 @@ macro SMW_ApplyPatchesPostAssembly()
 ; Insert your patch references here that will be assembled after the ROM has been assembled.
 ; Use this macro for patches that don't work correctly while the ROM is assembling, like ones that use the readX commands or haven't been integrated into this disassembly.
 
-incsrc "Patches/SA1/remap/sprite_memory.asm" ; Remaps Sprite Memory*
+if !Define_DUO_SA1 != !FALSE
+	incsrc "Patches/SA1/remap/sprite_memory.asm" ; Remaps Sprite Memory*
+endif
 
 incsrc "Patches/PiranhaFixed/PIR.asm"
 

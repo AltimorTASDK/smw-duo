@@ -1,5 +1,10 @@
 !RAM_DUO_Lo = $000F5E
-!RAM_DUO_Hi = $419C7B
+
+if !Define_DUO_SA1 != !FALSE
+	!RAM_DUO_Hi = $419C7B
+else
+	!RAM_DUO_Hi = $7F9C7B
+endif
 
 ; 20 bytes max
 struct DUO !RAM_DUO_Lo
@@ -25,11 +30,14 @@ struct DUO_Hi !RAM_DUO_Hi
 endstruct
 
 macro Define_SA1_RAM(Name)
-	!Address #= !RAM_SMW_<Name>
-	if !Address >= $0000 && !Address <= $00FF
-		!RAM_SA1_<Name> = !RAM_SMW_<Name>+$3000
-	elseif !Address >= $0100 && !Address <= $1FFF
-		!RAM_SA1_<Name> = !RAM_SMW_<Name>+$6000
+	if !Define_DUO_SA1 != !FALSE
+		if !RAM_SMW_<Name> >= $0000 && !RAM_SMW_<Name> <= $00FF
+			!RAM_SA1_<Name> = !RAM_SMW_<Name>+$3000
+		elseif !RAM_SMW_<Name> >= $0100 && !RAM_SMW_<Name> <= $1FFF
+			!RAM_SA1_<Name> = !RAM_SMW_<Name>+$6000
+		else
+			!RAM_SA1_<Name> = !RAM_SMW_<Name>
+		endif
 	else
 		!RAM_SA1_<Name> = !RAM_SMW_<Name>
 	endif
@@ -66,3 +74,38 @@ endmacro
 %Define_SA1_RAM(Player_YPosLo)
 %Define_SA1_RAM(Player_YSpeed)
 %Define_SA1_RAM(Timer_EndLevel)
+
+%Define_SA1_RAM(L1ScrollSpr_SpriteID)
+%Define_SA1_RAM(L2ScrollSpr_SpriteID)
+%Define_SA1_RAM(Mirror_CurrentLayer1XPosHi)
+%Define_SA1_RAM(Mirror_CurrentLayer1XPosLo)
+%Define_SA1_RAM(Mirror_CurrentLayer1YPosHi)
+%Define_SA1_RAM(Mirror_CurrentLayer1YPosLo)
+%Define_SA1_RAM(NorSpr_CurrentLayerPriority)
+%Define_SA1_RAM(NorSpr_CurrentSlotID)
+%Define_SA1_RAM(NorSpr_CurrentStatus)
+%Define_SA1_RAM(NorSpr_FacingDirection)
+%Define_SA1_RAM(NorSpr_SpriteID)
+%Define_SA1_RAM(NorSpr_XPosHi)
+%Define_SA1_RAM(NorSpr_XPosLo)
+%Define_SA1_RAM(NorSpr_XSpeed)
+%Define_SA1_RAM(NorSpr_YPosHi)
+%Define_SA1_RAM(NorSpr_YPosLo)
+%Define_SA1_RAM(NorSpr_YSpeed)
+%Define_SA1_RAM(NorSprXXX_PowerUps_NoBlockSideInteractionTimer)
+%Define_SA1_RAM(NorSprXXX_PowerUps_RisingOutOfBlockTimer)
+%Define_SA1_RAM(NorSprXXX_PowerUps_RisingOutOfSpriteBlockFlag)
+%Define_SA1_RAM(NorSprXXX_PowerUps_StayInPlaceFlag)
+%Define_SA1_RAM(Player_XPosHi)
+%Define_SA1_RAM(Player_XPosLo)
+%Define_SA1_RAM(ShooterSpr_ShootTimer)
+%Define_SA1_RAM(ShooterSpr_XPosHi)
+%Define_SA1_RAM(ShooterSpr_XPosLo)
+%Define_SA1_RAM(ShooterSpr_YPosHi)
+%Define_SA1_RAM(ShooterSpr_YPosLo)
+%Define_SA1_RAM(SmokeSpr_SpriteID)
+%Define_SA1_RAM(SmokeSpr_Timer)
+%Define_SA1_RAM(SmokeSpr_XPosLo)
+%Define_SA1_RAM(SmokeSpr_YPosLo)
+
+%Define_SA1_RAM(NorSpr_Table7E1504)
