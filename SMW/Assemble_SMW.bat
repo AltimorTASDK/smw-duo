@@ -5,7 +5,7 @@ set Input1=
 set asarVer=asar
 set GAMDID="SMW"
 set ROMVer=
-set ROMExt=.sfc
+set ROMExt=.smc
 set HackCheck=""
 set HackName=""
 
@@ -61,7 +61,7 @@ set ROMNAME=Super Mario World
 
 :Assemble
 
-set output="%ROMNAME% %ROMVer%%ROMExt%"
+set output="%ROMNAME%%ROMVer%%ROMExt%"
 
 if exist %output% del %output%
 echo Assembling %ROMNAME% %ROMVer%%ROMExt% ... this may take a minute.
@@ -105,8 +105,13 @@ if exist ..\%GAMDID%\Temp.txt del ..\%GAMDID%\Temp.txt
 
 %asarVer% --fix-checksum=off --define GameID="%GAMDID%" --define ROMID="%Input1%" --define FileType=3 ..\Global\AssembleFile.asm %output%
 
-::"Lunar Magic.exe" -ImportAllGraphics "%output%"
-::"Lunar Magic.exe" -ImportLevel "%output%" "%GAMDID%\levels\105.mwl"
+if "%LUNARMAGIC%" equ "" goto :NoLunar
+"%LUNARMAGIC%" -ImportAllGraphics "%output%"
+"%LUNARMAGIC%" -ImportAllMap16 "%output%" "..\%GAMDID%\GFX\SMWMap16.map16"
+"%LUNARMAGIC%" -ImportMultLevels "%output%" "..\%GAMDID%\Custom\Levels"
+
+:NoLunar
+%asarVer% Custom\Asar_Patches_PostLM.asm %output%
 
 echo Cleaning up...
 if exist ..\%GAMDID%\SPC700\engine.bin del ..\%GAMDID%\SPC700\engine.bin

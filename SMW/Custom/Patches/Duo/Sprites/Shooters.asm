@@ -7,13 +7,37 @@ Main:
 	CMP.b #$F0
 	BNE.b Generator
 	; Handle as a shooter
-	;LDA.b #$C9
 	JML.l SMW_ParseLevelSpriteList_CODE_02A8D4+4
 Generator:
 	; Overwritten code
 	LDA.w !RAM_SA1_L1ScrollSpr_SpriteID
 	ORA.w !RAM_SA1_L2ScrollSpr_SpriteID
 	JML.l SMW_ParseLevelSpriteList_CODE_02A84C+$1E+6
+namespace off
+
+; Handle extra bytes
+org SMW_NorSprXXX_LoadShooter_CODE_02ABDF+$0B
+namespace DUO_HandleShooterData
+	JSL.l Main
+freecode
+Main:
+	INY #2
+
+	LDA.w !RAM_SMW_ShooterSpr_SpriteID,x
+	CMP.b #$F0-$C8
+	BNE.b NextSprite
+
+	LDA.b [!RAM_SMW_Pointer_SpriteListDataLo],y
+	STA.l DUO_Hi.Shooter_SpriteID,x
+	INY
+	LDA.b [!RAM_SMW_Pointer_SpriteListDataLo],y
+	STA.l DUO_Hi.Shooter_PipeDirection,x
+	INY
+
+NextSprite:
+	; Overwritten code
+	LDX.b !RAM_SMW_Misc_ScratchRAM02
+	RTL
 namespace off
 
 ; Extend shooter sprite table
@@ -74,42 +98,56 @@ Thunk:
 	; Return to bank 02
 	JSR.w Main
 	JML.l SMW_ShooterSpr01_BulletBillShooter_Return02B4DD
+Return1:
+	RTS
 Main:
 	LDA.w !RAM_SA1_ShooterSpr_ShootTimer,x
-	BNE.b Return02B4DD
+	BNE.b Return1
 	LDA.b #$60
 	STA.w !RAM_SA1_ShooterSpr_ShootTimer,x
 	LDA.w !RAM_SA1_ShooterSpr_YPosLo,x
 	CMP.b !RAM_SA1_Mirror_CurrentLayer1YPosLo
 	LDA.w !RAM_SA1_ShooterSpr_YPosHi,x
 	SBC.b !RAM_SA1_Mirror_CurrentLayer1YPosHi
-	BNE.b Return02B4DD
+	BNE.b Return1
 	LDA.w !RAM_SA1_ShooterSpr_XPosLo,x
 	CMP.b !RAM_SA1_Mirror_CurrentLayer1XPosLo
 	LDA.w !RAM_SA1_ShooterSpr_XPosHi,x
 	SBC.b !RAM_SA1_Mirror_CurrentLayer1XPosHi
-	BNE.b Return02B4DD
+	BNE.b Return
 	LDA.w !RAM_SA1_ShooterSpr_XPosLo,x
 	SEC
 	SBC.b !RAM_SA1_Mirror_CurrentLayer1XPosLo
 	CLC
 	ADC.b #$10
 	CMP.b #$10
-	BCC.b Return02B4DD
+	BCC.b Return
 	JSL.l SMW_FindFreeNormalSpriteSlot_LowPriority
-	BMI.b Return02B4DD
+	BMI.b Return
 	LDA.b #!Define_SMW_NorSprStatus08_Normal
 	STA.w !RAM_SA1_NorSpr_CurrentStatus,y
-	LDA.b #!Define_SMW_SpriteID_NorSpr074_Mushroom
+	LDA.l DUO_Hi.Shooter_SpriteID,x
 	STA.w !RAM_SA1_NorSpr_SpriteID,y
+	LDA.b #1
+	CMP.l DUO_Hi.Shooter_PipeDirection,x
 	LDA.w !RAM_SA1_ShooterSpr_XPosLo,x
+	BCC.b NoXOffset
+	; Spawn from middle of pipe
+	CLC
+	ADC.b #8
+NoXOffset:
 	STA.w !RAM_SA1_NorSpr_XPosLo,y
 	LDA.w !RAM_SA1_ShooterSpr_XPosHi,x
+	ADC.b #0
 	STA.w !RAM_SA1_NorSpr_XPosHi,y
+	LDA.b #1
+	CMP.l DUO_Hi.Shooter_PipeDirection,x
 	LDA.w !RAM_SA1_ShooterSpr_YPosLo,x
+	BCS.b NoYOffset
 	; Spawn from middle of pipe
 	SEC
-	SBC.b #7
+	SBC.b #8
+NoYOffset:
 	STA.w !RAM_SA1_NorSpr_YPosLo,y
 	LDA.w !RAM_SA1_ShooterSpr_YPosHi,x
 	SBC.b #0
@@ -121,11 +159,14 @@ Main:
 	STZ.w !RAM_SA1_NorSpr_CurrentLayerPriority,x
 	LDA.b #60
 	STA.w !RAM_SA1_NorSprXXX_PowerUps_RisingOutOfBlockTimer,x
+	TXY
+	PLX
+	LDA.l DUO_Hi.Shooter_PipeDirection,x
+	STA.w !RAM_SA1_NorSprXXX_PowerUps_RisingOutOfBlockDirection,y
+	CMP.b #2
+	BNE.b Return
 	; Come out to the left
 	LDA.b #1
-	STA.w !RAM_SA1_NorSpr_FacingDirection,x
-	LDA.b #2
-	STA.w !RAM_SA1_NorSprXXX_PowerUps_RisingOutOfBlockDirection,x
-	PLX
-Return02B4DD:
+	STA.w !RAM_SA1_NorSpr_FacingDirection,y
+Return:
 	RTS

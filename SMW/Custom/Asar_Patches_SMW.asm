@@ -31,6 +31,7 @@ incsrc "Patches/Duo/Blocks.asm"
 incsrc "Patches/Duo/Debug.asm"
 incsrc "Patches/Duo/Graphics.asm"
 incsrc "Patches/Duo/Physics.asm"
+incsrc "Patches/Duo/Sprites/DataSizes.asm"
 incsrc "Patches/Duo/Sprites/Powerups.asm"
 incsrc "Patches/Duo/Sprites/Shooters.asm"
 

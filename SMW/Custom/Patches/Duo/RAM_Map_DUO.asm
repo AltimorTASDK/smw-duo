@@ -27,6 +27,10 @@ struct DUO_Hi !RAM_DUO_Hi
 	.Misc_StatusBarTilemap_PMeterLabel: skip 1*2
 	.Misc_StatusBarTilemap_PMeter: skip 8*2
 	.Misc_StatusBarTilemapEnd:
+	.Shooter_SpriteID:
+	.Shooter_ExtraByte1: skip !Define_SMW_MaxShooterSpriteSlot
+	.Shooter_PipeDirection:
+	.Shooter_ExtraByte2: skip !Define_SMW_MaxShooterSpriteSlot
 endstruct
 
 macro Define_SA1_RAM(Name)
@@ -109,3 +113,5 @@ endmacro
 %Define_SA1_RAM(SmokeSpr_YPosLo)
 
 %Define_SA1_RAM(NorSpr_Table7E1504)
+
+%Define_SA1_RAM(Pointer_SpriteListDataLo)
