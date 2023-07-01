@@ -89,10 +89,10 @@ ShooterSprPtrs:
 .ShooterSpr25_Unused:            dl SMW_ShooterSpr03_Unused_Main
 .ShooterSpr26_Unused:            dl SMW_ShooterSpr03_Unused_Main
 .ShooterSpr27_Unused:            dl SMW_ShooterSpr03_Unused_Main
-.ShooterSpr28_Unused:            dl SMW_ShooterSpr28_MushroomShooter_Thunk
+.ShooterSpr28_Unused:            dl SMW_ShooterSpr28_PipeShooter_Thunk
 namespace off
 
-namespace SMW_ShooterSpr28_MushroomShooter
+namespace SMW_ShooterSpr28_PipeShooter
 freecode
 Thunk:
 	; Return to bank 02
