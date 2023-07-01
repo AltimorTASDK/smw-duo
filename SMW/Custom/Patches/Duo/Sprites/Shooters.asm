@@ -323,3 +323,18 @@ Main:
 NoCollision:
 	JML.l SMW_HandleNormalSpriteLevelCollision_Return019210
 namespace off
+
+; Prevent enemies coming out of pipes from automatically facing the player
+org SMW_NorSprXXX_GenericEnemies_Status01_MakeSpriteFacePlayer+3
+namespace DUO_HandleEnemyFacingOutOfPipe
+	JSL.l Main
+freecode
+Main:
+	LDA.l DUO_Hi.NorSpr_PipeExitTimer,x
+	BNE.b +
+	; Overwritten code
+	TYA
+	STA.w !RAM_SMW_NorSpr_FacingDirection,x
++:
+	RTL
+namespace off
