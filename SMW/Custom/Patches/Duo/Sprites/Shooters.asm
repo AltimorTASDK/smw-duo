@@ -166,7 +166,7 @@ NoYOffset:
 	PHX
 	TYX
 	STA.l DUO_Hi.NorSpr_PipeExitDirection,x
-	LDA.b #64
+	LDA.b #63
 	STA.l DUO_Hi.NorSpr_PipeExitTimer,x
 	PLX
 	LDA.l DUO_Hi.Shooter_PipeDirectionAndOffset,x
