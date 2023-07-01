@@ -28,6 +28,7 @@ endif
 incsrc "Patches/Duo/RAM_Map_DUO.asm"
 incsrc "Patches/Duo/Utility.asm"
 incsrc "Patches/Duo/Blocks.asm"
+incsrc "Patches/Duo/Checkpoints.asm"
 incsrc "Patches/Duo/Debug.asm"
 incsrc "Patches/Duo/Graphics.asm"
 incsrc "Patches/Duo/Physics.asm"

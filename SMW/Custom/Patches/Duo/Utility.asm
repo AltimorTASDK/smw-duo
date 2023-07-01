@@ -4,6 +4,18 @@ endmacro
 macro Mode8BitA()
 	SEP.b #$20
 endmacro
+macro Mode16BitXY()
+	REP.b #$10
+endmacro
+macro Mode8BitXY()
+	SEP.b #$10
+endmacro
+macro Mode16BitAXY()
+	REP.b #$30
+endmacro
+macro Mode8BitAXY()
+	SEP.b #$30
+endmacro
 
 freecode
 DUO_HexToDec:

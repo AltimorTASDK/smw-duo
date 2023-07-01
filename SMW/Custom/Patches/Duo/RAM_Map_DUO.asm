@@ -8,6 +8,10 @@ endif
 
 ; 20 bytes max
 struct DUO !RAM_DUO_Lo
+	.ScratchRAM00: skip 1
+	.ScratchRAM01: skip 1
+	.ScratchRAM02: skip 1
+	.ScratchRAM03: skip 1
 	.Player_HighJumpFlag: skip 1
 	.Player_LongJumpFlag: skip 1
 	.Player_WallTouchFlag: skip 1
@@ -27,10 +31,20 @@ struct DUO_Hi !RAM_DUO_Hi
 	.Misc_StatusBarTilemap_PMeterLabel: skip 1*2
 	.Misc_StatusBarTilemap_PMeter: skip 8*2
 	.Misc_StatusBarTilemapEnd:
+	.CheckpointXPosLo: skip 1
+	.CheckpointXPosHi: skip 1
+	.CheckpointYPosLo: skip 1
+	.CheckpointYPosHi: skip 1
+	.Level_CheckpointXPosLo: skip 96
+	.Level_CheckpointXPosHi: skip 96
+	.Level_CheckpointYPosLo: skip 96
+	.Level_CheckpointYPosHi: skip 96
 	.Shooter_SpriteID:
 	.Shooter_ExtraByte1: skip !Define_SMW_MaxShooterSpriteSlot
-	.Shooter_PipeDirection:
+	.Shooter_PipeDirectionAndOffset:
 	.Shooter_ExtraByte2: skip !Define_SMW_MaxShooterSpriteSlot
+	.NorSpr_PipeExitDirection: skip !Define_SMW_MaxNormalSpriteSlot
+	.NorSpr_PipeExitTimer: skip !Define_SMW_MaxNormalSpriteSlot
 endstruct
 
 macro Define_SA1_RAM(Name)
