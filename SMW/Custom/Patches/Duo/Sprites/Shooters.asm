@@ -166,7 +166,7 @@ NoYOffset:
 	PHX
 	TYX
 	STA.l DUO_Hi.NorSpr_PipeExitDirection,x
-	LDA.b #60
+	LDA.b #64
 	STA.l DUO_Hi.NorSpr_PipeExitTimer,x
 	PLX
 	LDA.l DUO_Hi.Shooter_PipeDirectionAndOffset,x
@@ -254,6 +254,10 @@ PreHandleSprite:
 	LDA.w !RAM_SMW_NorSpr_CurrentLayerPriority,x
 	STA.w DUO.ScratchRAM03
 	STZ.w !RAM_SMW_NorSpr_CurrentLayerPriority,x
+
+	; Don't move if sprites locked
+	LDA.w DUO.ScratchRAM01
+	BNE.w .Return
 
 	STZ.b !RAM_SA1_NorSpr_XSpeed,x
 	LDA.l DUO_Hi.NorSpr_PipeExitDirection,x
