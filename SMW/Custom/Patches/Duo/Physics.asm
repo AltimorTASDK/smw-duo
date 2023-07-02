@@ -8,11 +8,19 @@ namespace DUO_RunPlayerBlockCode_UpdateWallFlag
 	JML.l Main
 freecode
 Main:
-	STZ.w DUO.Player_WallTouchFlag
+	PHA
+	LDA.w DUO.Player_SpriteWallTouchFlag
+	STA.w DUO.Player_WallTouchFlag
+	STZ.w DUO.Player_SpriteWallTouchFlag
+	PLA
 	BEQ.b NoCollision
 
 Collision:
-	INC.w DUO.Player_WallTouchFlag
+	PHA
+	LDA.b !RAM_SA1_Player_HorizontalSideOfBlockBeingTouched
+	INC
+	STA.w DUO.Player_WallTouchFlag
+	PLA
 	CPY.b #$11
 	JML.l SMW_RunPlayerBlockCode_LMBlockOffset_MarioSide+3+4
 
@@ -281,7 +289,8 @@ NormalWalljump:
 	STA.w !RAM_SA1_IO_SoundCh2
 
 CheckWalljumpSide:
-	LDA.b !RAM_SA1_Player_HorizontalSideOfBlockBeingTouched
+	LDA.w DUO.Player_WallTouchFlag
+	CMP.b #1
 	BNE.b WalljumpRight
 
 WalljumpLeft:

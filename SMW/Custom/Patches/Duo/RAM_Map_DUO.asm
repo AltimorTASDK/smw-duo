@@ -8,13 +8,18 @@ endif
 
 ; 20 bytes max
 struct DUO !RAM_DUO_Lo
+	; Can't be used by normal sprites
 	.ScratchRAM00: skip 1
 	.ScratchRAM01: skip 1
 	.ScratchRAM02: skip 1
 	.ScratchRAM03: skip 1
+
+	.ScratchRAM04: skip 1
+
 	.Player_HighJumpFlag: skip 1
 	.Player_LongJumpFlag: skip 1
 	.Player_WallTouchFlag: skip 1
+	.Player_SpriteWallTouchFlag: skip 1
 	.Player_WalljumpTimer: skip 1
 endstruct
 
